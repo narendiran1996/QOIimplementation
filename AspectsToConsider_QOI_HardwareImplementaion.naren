@@ -1,0 +1,10 @@
+1) Optimize 
+2) change << with * and check in hash
+3) use 2's compment wherever -ve
+4) mappiner in op diff can be done with addition of -2 rather than mapping
+
+
+
+
+Byte pocessing - memory is 8bit - output in max of 4 cyles
+Word pocessing - memory is 32bit - Need 4 line buffers for getting the output in max of 2 cycles - one to decode and one to write or read from INDDEX_list
