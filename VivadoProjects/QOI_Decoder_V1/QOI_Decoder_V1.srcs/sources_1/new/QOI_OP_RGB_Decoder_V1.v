@@ -3,7 +3,6 @@
 
 module QOI_OP_RGB_Decoder_V1
                 (
-                    input wire [6-1:0]currentVal_DG,
                     input wire [8-1:0]nextByte_R,
                     input wire [8-1:0]nextByte_G,
                     input wire [8-1:0]nextByte_B,
