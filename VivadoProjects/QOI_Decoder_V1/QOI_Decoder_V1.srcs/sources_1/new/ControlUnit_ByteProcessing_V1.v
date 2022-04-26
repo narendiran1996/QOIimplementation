@@ -3,7 +3,7 @@
 module ControlUnit_ByteProcessing_V1
                 #
                 (
-                    parameter DEPTH = 30758
+                    parameter DEPTH = 30750
                 )
                 (
                     input wire clk,
@@ -23,7 +23,10 @@ module ControlUnit_ByteProcessing_V1
 
 
                     output reg [5-1:0]RGB_INDEX_SDIFF_MDIFF_RUNN,
-                    output reg validOutput
+                    output reg validOutput,
+
+
+                    output wire doneProcessing
 
                 );
 
@@ -47,7 +50,8 @@ wire RGB_format;
 assign RGB_format = (currentVal_OP == 8'b1111_1110);
 wire [1:0]OPCode;
 assign OPCode = currentVal_OP[7:6];
-
+reg memoryDoneReg;
+wire memoryDone;
 
 reg addressInc, currentByte_Plus_1_BufferIn, currentByte_Plus_2_BufferIn;
 
@@ -98,7 +102,11 @@ always@(*)
                     currentByte_Plus_1_BufferIn = 0;
                     currentByte_Plus_2_BufferIn = 0;
                     RGB_INDEX_SDIFF_MDIFF_RUNN = 5'b00000;
-                    if(RGB_format == 1)
+                    if(memoryDoneReg == 1)
+                        begin
+                            nextState = STOP;
+                        end
+                    else if(RGB_format == 1)
                         begin
                             addressInc = 1;
                             nextState = RGB_PROCESSING1;
@@ -190,7 +198,7 @@ always@(*)
                     currentByte_Plus_1_BufferIn = 1;
                     currentByte_Plus_2_BufferIn = 0;
                     RGB_INDEX_SDIFF_MDIFF_RUNN = 5'b00000;          
-                    addressInc = 0;
+                    addressInc = 1;
                     validOutput = 0;
                     nextState = WRITE_MDIFF;
                 end
@@ -199,7 +207,7 @@ always@(*)
                     currentByte_Plus_1_BufferIn = 0;
                     currentByte_Plus_2_BufferIn = 0;
                     RGB_INDEX_SDIFF_MDIFF_RUNN = 5'b00010;          
-                    addressInc = 1;
+                    addressInc = 0;
                     validOutput = 1;
                     nextState = DECODE;
                 end
@@ -224,6 +232,15 @@ always@(*)
                     validOutput = 0;
                     nextState = RUN_LENGTH_PROCESSING;
                 end
+            STOP:
+                begin
+                    currentByte_Plus_1_BufferIn = 0;
+                    currentByte_Plus_2_BufferIn = 0;
+                    RGB_INDEX_SDIFF_MDIFF_RUNN = 5'b00000;          
+                    addressInc = 0;
+                    validOutput = 0;
+                    nextState = STOP;
+                end
             default: 
                 begin
                     RGB_INDEX_SDIFF_MDIFF_RUNN = 5'hx;
@@ -241,7 +258,7 @@ always@(*)
 
 always @(posedge clk )
     begin
-        if(rst == 1 || addressIn == (DEPTH - 1))
+        if(rst == 1)
             addressIn <= 14;
         else
             if(addressInc == 1)
@@ -252,7 +269,16 @@ always @(posedge clk )
     end
 
 
+assign memoryDone = addressIn == (DEPTH-8);
+always @(posedge clk ) 
+    begin
+        if(rst == 1)
+            memoryDoneReg <= 0;
+        else
+            memoryDoneReg <= memoryDone;   
+    end
 
+assign doneProcessing = (presentState == STOP);
 
 
 RegBuffers_V1  CP1
@@ -297,5 +323,19 @@ always @(posedge clk )
                     runVal <= runVal;
             end
     end
+
+reg [32-1:0]countValidOuts;
+always @(posedge clk )
+    begin
+        if(rst == 1)
+            countValidOuts <= 0;
+        else   
+            begin
+                if(validOutput == 1)
+                    countValidOuts <= countValidOuts + 1;
+            end
+    end 
+
+
 
 endmodule

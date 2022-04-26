@@ -1,6 +1,10 @@
 `timescale 1ns / 1ps
 
 module TopModule_Decoder_ByteProcessing_V1
+                #
+                (
+                    parameter DEPTH = 30758
+                )
                 (
                     input wire clk,
                     input wire rst,
@@ -9,10 +13,11 @@ module TopModule_Decoder_ByteProcessing_V1
                     output wire [8-1:0]Rout,
                     output wire [8-1:0]Gout,
                     output wire [8-1:0]Bout,
-                    output wire validOutput
+                    output wire validOutput,
+                    output wire doneProcessing
                 );
 
-                               localparam DEPTH = 30758;
+                               
 reg [24-1:0]finalRGB;
 assign {Rout, Gout, Bout} = finalRGB;
 wire [24-1:0]previousRGBValue;
@@ -25,7 +30,7 @@ wire [5-1:0]RGB_INDEX_SDIFF_MDIFF_RUNN;
 wire [$clog2(DEPTH)-1:0]addressIn;
 wire [8-1:0]dataOut;
 
-EncodedImageMemory_V1   EncodedIM
+EncodedImageMemory_V1   #(.DEPTH(DEPTH)) EncodedIM
                 (
                     .clk(clk),
                     .rst(rst),
@@ -36,7 +41,7 @@ EncodedImageMemory_V1   EncodedIM
 
 
 assign currentVal_OP = dataOut;
-ControlUnit_ByteProcessing_V1   CUP
+ControlUnit_ByteProcessing_V1   #(.DEPTH(DEPTH)) CUP
                 (
                     .clk(clk),
                     .rst(rst),
@@ -51,7 +56,8 @@ ControlUnit_ByteProcessing_V1   CUP
                     
                     
                     .RGB_INDEX_SDIFF_MDIFF_RUNN(RGB_INDEX_SDIFF_MDIFF_RUNN),
-                    .validOutput(validOutput)
+                    .validOutput(validOutput),
+                    .doneProcessing(doneProcessing)
                 );
 
 wire [24-1:0]RGB_24bit;

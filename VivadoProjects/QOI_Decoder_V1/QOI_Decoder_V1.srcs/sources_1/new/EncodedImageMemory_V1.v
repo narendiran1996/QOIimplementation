@@ -3,7 +3,7 @@
 module EncodedImageMemory_V1
                 #
                 (
-                    parameter DEPTH = 30758,
+                    parameter DEPTH = 30750,
                     parameter MEM_FILE = "/media/narendiran/MOVIES/QOIimplementation/MemFiles/encodedQOIImage.mem"
                 )
                 (

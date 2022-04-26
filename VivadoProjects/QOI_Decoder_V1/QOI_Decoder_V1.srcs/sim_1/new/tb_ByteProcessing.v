@@ -9,6 +9,7 @@ reg clk, rst, startDecoding;
  wire [8-1:0]Gout;
  wire [8-1:0]Bout;
  wire validOutput;
+ wire doneProcessing;
 TopModule_Decoder_ByteProcessing_V1 DUT
                 (
                     clk,
@@ -17,7 +18,8 @@ TopModule_Decoder_ByteProcessing_V1 DUT
                     Rout,
                     Gout,
                     Bout,
-                    validOutput
+                    validOutput,
+                    doneProcessing
                 );
 
 always
@@ -46,15 +48,15 @@ initial
 
 always@(posedge clk)
     begin
+        if(doneProcessing == 1)
+        begin
+            $fclose(f);
+            $finish;
+            end
         if(validOutput == 1)
             $fwrite(f, "%d,%d,%d\n", Rout, Gout,Bout);        
     end
 
-initial
-    begin
-        #900;
-        $fclose(f);
-        $finish;
-    end
+
     
 endmodule
